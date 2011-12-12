@@ -11,7 +11,8 @@ class ContactInfo(object):
     """
 
     def __init__(self, ip, port, node_id, last_seen=None):
-        """init for a node in a k-bucket.
+        """
+        init for a node in a k-bucket.
         ip is the
         """
         self.ip = ip
@@ -23,7 +24,7 @@ class ContactInfo(object):
         return self.node_id == other.node_id
     
     def __ne__(self, other):
-        return self.__eq__(self, other)
+        return self.node_id != other.node_id
         
     def __str__(self):
         message = 'node<%s>@%s:%d last_seen: %s' 

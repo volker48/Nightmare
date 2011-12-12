@@ -39,6 +39,13 @@ class Test(unittest.TestCase):
         kbucket.store_node(node50, 50)
         self.assertEqual(len(kbucket.buckets[5]), 1)
         
+    def test_contact_info_comparisons(self):
+        c1 = kademlia.ContactInfo('192.168.176.1', 56789, 1, dt.now())
+        c2 = kademlia.ContactInfo('192.168.176.3', 56789, 2, dt.now())
+        self.assertFalse(c1 == c2)
+        self.assertTrue(c1 != c2)
+        self.assertTrue(c1 < c2)
+        self.assertTrue(c2 > c1)
  
 if __name__ == "__main__":
     unittest.main()
