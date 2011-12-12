@@ -1,7 +1,6 @@
 """
 Classes and methods for the Kademlia DHT protocol.
 """
-from operator import attrgetter
 from datetime import datetime as dt
 
 class ContactInfo(object):
@@ -74,7 +73,7 @@ class KBucket(object):
             else:
                 #need to ping oldest node and if it doesn't respond replace it and if it does drop new contact
                 pass                   
-        self.buckets[i].sort(key=attrgetter('last_seen')) 
+        self.buckets[i].sort() 
             
     def _find_bucket_index(self, distance):
         """
@@ -88,4 +87,23 @@ class KBucket(object):
                 return i
         raise Exception("Did not find kbucket for distance %d" % distance)  
         
+class Kademlia(object):
+    
+    def __init__(self, k=20):
+        self.kbuckets = KBucket(k)
+        
+    def find_node(self, node_id):
+        pass
+    
+    def find_value(self, value_id):
+        pass
+    
+    def ping(self, node_id):
+        pass
+    
+    def pong(self):
+        pass
+    
+    def store(self, key, value):
+        pass
                 
