@@ -10,7 +10,7 @@ class ContactInfo(object):
     network. Instances of this class are stored in the k-buckets.
     """
 
-    def __init__(self, ip, port, node_id, last_seen=None):
+    def __init__(self, ip, port, node_id, last_seen):
         """
         init for a node in a k-bucket.
         ip is the
@@ -25,6 +25,18 @@ class ContactInfo(object):
     
     def __ne__(self, other):
         return self.node_id != other.node_id
+    
+    def __lt__(self, other):
+        return self.last_seen < other.last_seen
+    
+    def __gt__(self, other):
+        return self.last_seen > other.last_seen
+    
+    def __ge__(self, other):
+        return self.last_seen >= other.last_seen
+
+    def __le__(self, other):
+        return self.last_seen <= other.last_seen
         
     def __str__(self):
         message = 'node<%s>@%s:%d last_seen: %s' 
