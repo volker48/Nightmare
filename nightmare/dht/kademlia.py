@@ -43,30 +43,36 @@ class KBucket(object):
         k --- The number of nodes to store in each KBucket defaults to 20
         """
         self.k = k
-        self.buckets = list()
-        for i in xrange(160):
-            self.buckets.append(list())
+        self.buckets = [list() for i in xrange(160)]
         
     def store_node(self, node, distance):
         """
         node --- The ContactInfo of the node to store in a k-bucket
         distance --- The integer XOR of the node's id with the node this KBucket belongs to
         """
+        i = self._find_bucket_index(distance)
+        to_update = [x for x in self.buckets[i] if x == node]
+        if to_update:
+            assert(len(to_update) == 1)
+            to_update[0].last_seen = dt.now()
+        else:                    
+            if len(self.buckets[i]) < self.k:                    
+                self.buckets[i].append(node) 
+            else:
+                #need to ping oldest node and if it doesn't respond replace it and if it does drop new contact
+                pass                   
+        self.buckets[i].sort(key=attrgetter('last_seen')) 
+            
+    def _find_bucket_index(self, distance):
+        """
+        Finds the index of the bucket a node at distance belongs in
+        distance --- The integer XOR of the node's id with the node this KBucket belongs to
+        """
         for i in xrange(160):
             lower_bound = 2**i
-            upper_bound = 2**i+1
+            upper_bound = 2**(i+1)
             if distance >= lower_bound and distance < upper_bound:
-                to_update = [x for x in self.buckets[i] if x == node]
-                if to_update:
-                    assert(len(to_update) == 1)
-                    to_update[0].last_seen = dt.now()
-                else:                    
-                    if len(self.buckets[i] < self.k):                    
-                        self.buckets[i].append(node) 
-                    else:
-                        #need to ping oldest node and if it doesn't respond replace it and if it does drop new contact
-                        pass                   
-                self.buckets[i].sort(key=attrgetter('last_seen')) 
-                break
+                return i
+        raise Exception("Did not find kbucket for distance %d" % distance)  
         
                 

@@ -1,7 +1,7 @@
 '''
 Created on Dec 11, 2011
 
-@author: Marcus McCurdy
+@author: Marcus McCurdy <marcus.mccurdy@gmail.com>
 '''
 import unittest
 import kademlia
@@ -26,6 +26,18 @@ class Test(unittest.TestCase):
     
     def test_kbuckets(self):
         kbucket = kademlia.KBucket()
+        self.assertTrue(len(kbucket.buckets) == 160)
+        for bucket in kbucket.buckets:
+            self.assertFalse(bucket)
+            
+    def test_store_node(self):
+        node = kademlia.ContactInfo('192.168.1.1', 56789, 1, dt.now())
+        kbucket = kademlia.KBucket()
+        kbucket.store_node(node, 1)
+        self.assertTrue(len(kbucket.buckets[0]) == 1)
+        node50 = kademlia.ContactInfo('192.168.1.2', 56789, 30, dt.now())
+        kbucket.store_node(node50, 50)
+        self.assertEqual(len(kbucket.buckets[5]), 1)
         
  
 if __name__ == "__main__":
