@@ -2,6 +2,8 @@
 Classes and methods for the Kademlia DHT protocol.
 """
 from datetime import datetime as dt
+from uuid import uuid4
+from hashlib import sha1
 
 class ContactInfo(object):
     """
@@ -12,7 +14,6 @@ class ContactInfo(object):
     def __init__(self, ip, port, node_id, last_seen):
         """
         init for a node in a k-bucket.
-        ip is the
         """
         self.ip = ip
         self.port = port
@@ -59,8 +60,8 @@ class KBucket(object):
         
     def store_node(self, node, distance):
         """
-        node --- The ContactInfo of the node to store in a k-bucket
-        distance --- The integer XOR of the node's id with the node this KBucket belongs to
+        @param node: The ContactInfo of the node to store in a k-bucket  
+        @param distance: The integer XOR of the node's id with the node this KBucket belongs to
         """
         i = self._find_bucket_index(distance)
         to_update = [x for x in self.buckets[i] if x == node]
@@ -89,21 +90,21 @@ class KBucket(object):
         
 class Kademlia(object):
     
-    def __init__(self, k=20):
-        self.kbuckets = KBucket(k)
+    def __init__(self):
+        random_uuid = uuid4()
+        sha = sha1()
+        sha.update(random_uuid.hex)
+        self.node_id = sha.hexdigest()
+    
+    def find_node(self, requestor_info, node_id):
+        print 'someone called find node with %s' % node_id
         
-    def find_node(self, node_id):
-        pass
+    def find_value(self, requestor_info, key):
+        print 'find_value key:%s' % key
     
-    def find_value(self, value_id):
-        pass
-    
-    def ping(self, node_id):
-        pass
-    
-    def pong(self):
-        pass
-    
-    def store(self, key, value):
-        pass
+    def ping(self, requestor_info):
+        print 'ping'
+        
+    def store(self, requestor_info, key, value):
+        print 'store key:%s value:%s' % (key, value)
                 
