@@ -11,7 +11,7 @@ class ContactInfo(object):
     network. Instances of this class are stored in the k-buckets.
     """
 
-    def __init__(self, ip, port, node_id, last_seen):
+    def __init__(self, ip, port, node_id, last_seen=None):
         """
         init for a node in a k-bucket.
         """
@@ -51,18 +51,19 @@ class KBucket(object):
     Class to handle k-buckets.
     """
     
-    def __init__(self, k=20):
+    def __init__(self, node_id, k=20):
         """
         k --- The number of nodes to store in each KBucket defaults to 20
         """
+        self.node_id = node_id
         self.k = k
         self.buckets = [list() for i in xrange(160)]
         
-    def store_node(self, node, distance):
+    def store_node(self, node):
         """
         @param node: The ContactInfo of the node to store in a k-bucket  
-        @param distance: The integer XOR of the node's id with the node this KBucket belongs to
         """
+        distance = long(self.node_id, 16) ^ long(node.node_id, 16)
         i = self._find_bucket_index(distance)
         to_update = [x for x in self.buckets[i] if x == node]
         if to_update:
@@ -86,25 +87,54 @@ class KBucket(object):
             upper_bound = 2**(i+1)
             if distance >= lower_bound and distance < upper_bound:
                 return i
-        raise Exception("Did not find kbucket for distance %d" % distance)  
+        raise Exception("Did not find kbucket for distance %d" % distance)
+    
+    def find_k_closest(self, id_to_compare):
+        distances = []
+        for bucket in self.buckets:
+            for node in bucket:
+                distance = long(id_to_compare, 16) ^ long(node, 16)
+                distances.append((node, distance))
+        distances.sort(key=lambda x: x[1])        
+        return [x[0] for x in distances][:self.k]
+            
+def generate_id():
+    """Generates a random UUID and returns the SHA-1 hash of it.
+    """
+    random_uuid = uuid4()
+    sha = sha1()
+    sha.update(random_uuid.hex)
+    return sha.hexdigest() 
         
 class Kademlia(object):
     
     def __init__(self):
-        random_uuid = uuid4()
-        sha = sha1()
-        sha.update(random_uuid.hex)
-        self.node_id = sha.hexdigest()
+        self.table = {}
+        self.node_id = generate_id()
+        self.kbuckets = KBucket(self.node_id)
+        
+
     
     def find_node(self, requestor_info, node_id):
-        print 'someone called find node with %s' % node_id
+        """FIND NODE takes a 160-bit ID as an argument 
+        The recipient of a the RPC returns <IPaddress,UDPport,NodeID> triples for the 
+        k nodes it knows about closest to the target ID. These triples can come from 
+        a single k-bucket, or they may come from multiple k-buckets if the closest 
+        k-bucket is not full. In any case, the RPC recipient must return k items 
+        (unless there are fewer than k nodes in all its k-buckets combined, in which 
+        case it returns every node it knows about).
+        """
+        self.kbuckets.store_node(requestor_info)
+        return self.kbuckets.find_k_closest(node_id)
         
     def find_value(self, requestor_info, key):
         print 'find_value key:%s' % key
     
     def ping(self, requestor_info):
+        self.kbuckets.store_node(requestor_info)
         print 'ping'
         
     def store(self, requestor_info, key, value):
-        print 'store key:%s value:%s' % (key, value)
+        self.kbuckets.store_node(requestor_info)
+        self.table[key] = value
                 

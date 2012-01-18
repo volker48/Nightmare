@@ -1,7 +1,7 @@
 '''
 Created on Dec 13, 2011
 
-@author: marcusmccurdy
+@author: Marcus McCurdy <marcus.mccurdy@gmail.com>
 '''
 from twisted.internet import reactor
 from twisted.spread.pb import PBServerFactory
