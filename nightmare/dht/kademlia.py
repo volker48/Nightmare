@@ -93,7 +93,7 @@ class KBucket(object):
         distances = []
         for bucket in self.buckets:
             for node in bucket:
-                distance = long(id_to_compare, 16) ^ long(node, 16)
+                distance = long(id_to_compare, 16) ^ long(node.node_id, 16)
                 distances.append((node, distance))
         distances.sort(key=lambda x: x[1])        
         return [x[0] for x in distances][:self.k]
@@ -112,8 +112,6 @@ class Kademlia(object):
         self.table = {}
         self.node_id = generate_id()
         self.kbuckets = KBucket(self.node_id)
-        
-
     
     def find_node(self, requestor_info, node_id):
         """FIND NODE takes a 160-bit ID as an argument 
@@ -132,7 +130,6 @@ class Kademlia(object):
     
     def ping(self, requestor_info):
         self.kbuckets.store_node(requestor_info)
-        print 'ping'
         
     def store(self, requestor_info, key, value):
         self.kbuckets.store_node(requestor_info)

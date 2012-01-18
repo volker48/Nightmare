@@ -11,9 +11,8 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(filename=args.logfile,level=logging.DEBUG)
     logging.info("Staring Kademlia")
-    contact = dht.kademlia.ContactInfo("192.168.176.2", 56789, 1234)
-    print contact
-    print repr(contact)
+    node = dht.kademlia.Kademlia()
+    
 
 if __name__ == "__main__":
     main()
