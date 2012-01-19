@@ -3,6 +3,7 @@
 import dht.kademlia
 import logging
 import argparse
+from twisted.application import service
 
 def main():
     parser = argparse.ArgumentParser(description="Nightmare PUB/SUB")

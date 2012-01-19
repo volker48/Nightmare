@@ -4,6 +4,7 @@ Classes and methods for the Kademlia DHT protocol.
 from datetime import datetime as dt
 from uuid import uuid4
 from hashlib import sha1
+import sqlite3
 
 class ContactInfo(object):
     """
@@ -104,14 +105,36 @@ def generate_id():
     random_uuid = uuid4()
     sha = sha1()
     sha.update(random_uuid.hex)
-    return sha.hexdigest() 
+    return sha.hexdigest()
+
+class SQLitePersistance(object):
+    
+    def __init__(self, db_filename):
+        self.connection =  sqlite3.connect(db_filename)
+        self.cursor = self.connection.cursor()
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS hashtable (key TEXT PRIMARY KEY, value BLOB);")
+        
+        self.connection.commit()
+        
+    def store(self, key, value):
+        self.cursor.execute("INSERT INTO hashtable VALUES (?, ?);", (key, value))    
+        self.connection.commit()
+        
+    def retrieve(self, key):
+        self.cursor.execute("SELECT value FROM hashtable WHERE key=?;", (key, ))
+        r = self.cursor.fetchone()
+        if r:
+            return r[0]
+        else:
+            return None
         
 class Kademlia(object):
     
-    def __init__(self):
+    def __init__(self, persistance=SQLitePersistance, db_filename='nightmare.db'):
         self.table = {}
         self.node_id = generate_id()
         self.kbuckets = KBucket(self.node_id)
+        self.persist = persistance(db_filename)
     
     def find_node(self, requestor_info, node_id):
         """FIND NODE takes a 160-bit ID as an argument 
@@ -126,12 +149,16 @@ class Kademlia(object):
         return self.kbuckets.find_k_closest(node_id)
         
     def find_value(self, requestor_info, key):
-        print 'find_value key:%s' % key
+        val = self.persist.retrieve(key)
+        if val:
+            return val
+        #Need to return k closest nodes I think.
+        return None
     
     def ping(self, requestor_info):
         self.kbuckets.store_node(requestor_info)
         
     def store(self, requestor_info, key, value):
         self.kbuckets.store_node(requestor_info)
-        self.table[key] = value
+        self.persist.store(key, value)
                 

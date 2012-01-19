@@ -5,9 +5,9 @@ Created on Dec 13, 2011
 '''
 from twisted.internet import reactor
 from twisted.spread.pb import PBServerFactory
-from dht.kademliaproto import Remote_Kademlia, Kademlia
+from dht.kademliaproto import PerspectiveKademliaFromService, Kademlia
 
 if __name__ == '__main__':
-    remote = Remote_Kademlia(Kademlia())
+    remote = PerspectiveKademliaFromService(Kademlia())
     reactor.listenTCP(8789, PBServerFactory(remote))
     reactor.run()
