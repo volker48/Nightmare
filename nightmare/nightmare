@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-import dht.kademlia
 import logging
 import argparse
-from twisted.application import service
+from twisted.application import service, internet
+from dht.kademliaproto import KademliaService, IPerspectiveKademlia
+from dht.kademlia import Kademlia
+from twisted.spread import pb
 
 def main():
     parser = argparse.ArgumentParser(description="Nightmare PUB/SUB")
@@ -12,8 +14,12 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(filename=args.logfile,level=logging.DEBUG)
     logging.info("Staring Kademlia")
-    node = dht.kademlia.Kademlia()
-    
+    application = service.Application('nightmare', uid=1, gid=1)
+    kademlia = Kademlia()
+    kademliaService = KademliaService(kademlia)
+    serviceCollection = service.IServiceCollection(application)
+    kademliaService.setServiceParent(serviceCollection)
+    internet.TCPServer(56789, pb.PBServerFactory(IPerspectiveKademlia(kademliaService))).setServiceParent(serviceCollection)
 
 if __name__ == "__main__":
     main()

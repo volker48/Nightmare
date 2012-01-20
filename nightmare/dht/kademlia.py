@@ -6,7 +6,7 @@ from uuid import uuid4
 from hashlib import sha1
 import sqlite3
 
-class ContactInfo(object):
+class Node(object):
     """
     Class that holds the contact information for a node in the Kademlia
     network. Instances of this class are stored in the k-buckets.
@@ -62,7 +62,7 @@ class KBucket(object):
         
     def store_node(self, node):
         """
-        @param node: The ContactInfo of the node to store in a k-bucket  
+        @param node: The Node of the node to store in a k-bucket  
         """
         distance = long(self.node_id, 16) ^ long(node.node_id, 16)
         i = self._find_bucket_index(distance)
