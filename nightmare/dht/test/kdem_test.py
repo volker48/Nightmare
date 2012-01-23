@@ -55,15 +55,15 @@ class KademliaTestCase(unittest.TestCase):
             node_under_test.ping(node)
         some_id = kademlia.generate_id()
         k_nodes = node_under_test.find_node(kademlia.Node('192.168.176.12', 56789, kademlia.generate_id()), some_id)
-        self.assertEqual(node_under_test.kbuckets.k, len(k_nodes), 'Invalid number of nodes returned')
+        self.assertEqual(node_under_test.kBuckets.k, len(k_nodes), 'Invalid number of nodes returned')
         
     def test_store(self):
         node = kademlia.Kademlia(db_filename=':memory:')
-        requestor = kademlia.Node('192.168.11.1', 56789, kademlia.generate_id())
+        requester = kademlia.Node('192.168.11.1', 56789, kademlia.generate_id())
         key = 'foo'
         val = 'bar'
-        node.store(requestor, key, val)
-        found_value = node.find_value(requestor, key)
+        node.store(requester, key, val)
+        found_value = node.find_value(requester, key)
         self.assertEqual(val, found_value)
         
 def suite():

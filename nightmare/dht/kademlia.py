@@ -86,15 +86,15 @@ class KBucket(object):
         for i in xrange(160):
             lower_bound = 2**i
             upper_bound = 2**(i+1)
-            if distance >= lower_bound and distance < upper_bound:
+            if lower_bound <= distance < upper_bound:
                 return i
         raise Exception("Did not find kbucket for distance %d" % distance)
     
-    def find_k_closest(self, id_to_compare):
+    def find_k_closest(self, target_id):
         distances = []
         for bucket in self.buckets:
             for node in bucket:
-                distance = long(id_to_compare, 16) ^ long(node.node_id, 16)
+                distance = long(target_id, 16) ^ long(node.node_id, 16)
                 distances.append((node, distance))
         distances.sort(key=lambda x: x[1])        
         return [x[0] for x in distances][:self.k]
@@ -107,7 +107,7 @@ def generate_id():
     sha.update(random_uuid.hex)
     return sha.hexdigest()
 
-class SQLitePersistance(object):
+class SQLitePersistence(object):
     
     def __init__(self, db_filename):
         self.connection =  sqlite3.connect(db_filename)
@@ -130,13 +130,13 @@ class SQLitePersistance(object):
         
 class Kademlia(object):
     
-    def __init__(self, persistance=SQLitePersistance, db_filename='nightmare.db'):
-        self.table = {}
+    def __init__(self, persistance=SQLitePersistence, db_filename='nightmare.db', alpha=3):
         self.node_id = generate_id()
-        self.kbuckets = KBucket(self.node_id)
+        self.kBuckets = KBucket(self.node_id)
         self.persist = persistance(db_filename)
+        self.alpha = alpha
     
-    def find_node(self, requestor_info, node_id):
+    def find_node(self, requester_info, target_id):
         """FIND NODE takes a 160-bit ID as an argument 
         The recipient of a the RPC returns <IPaddress,UDPport,NodeID> triples for the 
         k nodes it knows about closest to the target ID. These triples can come from 
@@ -145,20 +145,26 @@ class Kademlia(object):
         (unless there are fewer than k nodes in all its k-buckets combined, in which 
         case it returns every node it knows about).
         """
-        self.kbuckets.store_node(requestor_info)
-        return self.kbuckets.find_k_closest(node_id)
+        if requester_info:
+            self.kBuckets.store_node(requester_info)
+        return self.kBuckets.find_k_closest(target_id)
         
-    def find_value(self, requestor_info, key):
+    def find_value(self, requester_info, key):
+        self.kBuckets.store_node(requester_info)
         val = self.persist.retrieve(key)
         if val:
             return val
-        #Need to return k closest nodes I think.
-        return None
+        return self.find_node(None, key)
     
-    def ping(self, requestor_info):
-        self.kbuckets.store_node(requestor_info)
+    def ping(self, requester_info):
+        self.kBuckets.store_node(requester_info)
+        return self.node_id
         
-    def store(self, requestor_info, key, value):
-        self.kbuckets.store_node(requestor_info)
+    def store(self, requester_info, key, value):
+        self.kBuckets.store_node(requester_info)
         self.persist.store(key, value)
-                
+        return 'SUCCESS'
+
+    def node_lookup(self, key):
+        nodes = []
+        nodes.append(self.find_node(None, key))
